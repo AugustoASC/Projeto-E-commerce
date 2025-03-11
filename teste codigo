@@ -1,0 +1,163 @@
+-- Criação das Tabelas
+
+-- Tabela Clientes
+CREATE TABLE Clientes (
+    ClienteID INT PRIMARY KEY,
+    Nome VARCHAR(100),
+    CPF VARCHAR(14) UNIQUE, 
+    CNPJ VARCHAR(18) UNIQUE,
+    TipoPessoa VARCHAR(2) CHECK (TipoPessoa IN ('PF', 'PJ'))
+);
+
+-- Tabela Pedidos
+CREATE TABLE Pedidos (
+    PedidoID INT PRIMARY KEY,
+    ClienteID INT,
+    Data DATE,
+    Status VARCHAR(20),
+    ValorTotal DECIMAL(10, 2),
+    FOREIGN KEY (ClienteID) REFERENCES Clientes(ClienteID)
+);
+
+-- Tabela Produtos
+CREATE TABLE Produtos (
+    ProdutoID INT PRIMARY KEY,
+    Nome VARCHAR(100),
+    Preço DECIMAL(10, 2),
+    Estoque INT,
+    FornecedorID INT,
+    FOREIGN KEY (FornecedorID) REFERENCES Fornecedores(FornecedorID)
+);
+
+-- Tabela Fornecedores
+CREATE TABLE Fornecedores (
+    FornecedorID INT PRIMARY KEY,
+    Nome VARCHAR(100),
+    CNPJ VARCHAR(18) UNIQUE
+);
+
+-- Tabela Pagamentos
+CREATE TABLE Pagamentos (
+    PagamentoID INT PRIMARY KEY,
+    PedidoID INT,
+    FormaPagamento VARCHAR(50),
+    ValorPago DECIMAL(10, 2),
+    FOREIGN KEY (PedidoID) REFERENCES Pedidos(PedidoID)
+);
+
+-- Tabela Entregas
+CREATE TABLE Entregas (
+    EntregaID INT PRIMARY KEY,
+    PedidoID INT,
+    Status VARCHAR(20),
+    CodigoRastreio VARCHAR(50),
+    FOREIGN KEY (PedidoID) REFERENCES Pedidos(PedidoID)
+);
+
+-- Tabela Vendedores
+CREATE TABLE Vendedores (
+    VendedorID INT PRIMARY KEY,
+    Nome VARCHAR(100),
+    CPF VARCHAR(14)
+);
+
+-- Tabela Fornecedor_Vendedor (Relacionamento entre Fornecedores e Vendedores)
+CREATE TABLE Fornecedor_Vendedor (
+    FornecedorID INT,
+    VendedorID INT,
+    PRIMARY KEY (FornecedorID, VendedorID),
+    FOREIGN KEY (FornecedorID) REFERENCES Fornecedores(FornecedorID),
+    FOREIGN KEY (VendedorID) REFERENCES Vendedores(VendedorID)
+);
+
+-- Inserção de Dados de Teste
+
+-- Inserir Clientes
+INSERT INTO Clientes (ClienteID, Nome, CPF, TipoPessoa)
+VALUES 
+(1, 'João Silva', '12345678901', 'PF'),
+(2, 'Empresa XYZ', NULL, 'PJ');
+
+-- Inserir Fornecedores
+INSERT INTO Fornecedores (FornecedorID, Nome, CNPJ)
+VALUES 
+(1, 'Fornecedor A', '98765432000199'),
+(2, 'Fornecedor B', '11223344000188');
+
+-- Inserir Produtos
+INSERT INTO Produtos (ProdutoID, Nome, Preço, Estoque, FornecedorID)
+VALUES 
+(1, 'Produto 1', 100.00, 20, 1),
+(2, 'Produto 2', 50.00, 15, 2);
+
+-- Inserir Pedidos
+INSERT INTO Pedidos (PedidoID, ClienteID, Data, Status, ValorTotal)
+VALUES 
+(1, 1, '2025-03-01', 'Em Processamento', 200.00),
+(2, 2, '2025-03-05', 'Enviado', 300.00);
+
+-- Inserir Pagamentos
+INSERT INTO Pagamentos (PagamentoID, PedidoID, FormaPagamento, ValorPago)
+VALUES 
+(1, 1, 'Cartão de Crédito', 200.00),
+(2, 2, 'Boleto', 150.00),
+(3, 2, 'Cartão de Crédito', 150.00);
+
+-- Inserir Entregas
+INSERT INTO Entregas (EntregaID, PedidoID, Status, CodigoRastreio)
+VALUES 
+(1, 1, 'Em Processamento', 'R123456789'),
+(2, 2, 'Entregue', 'R987654321');
+
+-- Inserir Vendedores
+INSERT INTO Vendedores (VendedorID, Nome, CPF)
+VALUES 
+(1, 'Carlos Oliveira', '98765432100'),
+(2, 'Mariana Costa', '11223344556');
+
+-- Inserir Relacionamento Fornecedor_Vendedor
+INSERT INTO Fornecedor_Vendedor (FornecedorID, VendedorID)
+VALUES 
+(1, 1),
+(2, 2);
+
+-- Exemplos de Queries SQL
+
+-- 1. Quantos pedidos foram feitos por cada cliente?
+SELECT ClienteID, COUNT(PedidoID) AS QuantidadePedidos
+FROM Pedidos
+GROUP BY ClienteID;
+
+-- 2. Algum vendedor também é fornecedor?
+SELECT Vendedores.Nome AS VendedorNome, Fornecedores.Nome AS FornecedorNome
+FROM Vendedores
+JOIN Fornecedor_Vendedor ON Vendedores.VendedorID = Fornecedor_Vendedor.VendedorID
+JOIN Fornecedores ON Fornecedor_Vendedor.FornecedorID = Fornecedores.FornecedorID;
+
+-- 3. Relação de produtos, fornecedores e estoques:
+SELECT Produtos.Nome AS ProdutoNome, Fornecedores.Nome AS FornecedorNome, Produtos.Estoque
+FROM Produtos
+JOIN Fornecedores ON Produtos.FornecedorID = Fornecedores.FornecedorID;
+
+-- 4. Relação de nomes dos fornecedores e nomes dos produtos:
+SELECT Fornecedores.Nome AS FornecedorNome, Produtos.Nome AS ProdutoNome
+FROM Produtos
+JOIN Fornecedores ON Produtos.FornecedorID = Fornecedores.FornecedorID;
+
+-- 5. Produtos que têm estoque abaixo de 10 unidades, ordenados pelo preço em ordem crescente:
+SELECT Nome, Preço, Estoque
+FROM Produtos
+WHERE Estoque < 10
+ORDER BY Preço ASC;
+
+-- 6. Pedidos realizados por cada cliente que não foram pagos ainda (exemplo de filtro e junção):
+SELECT Clientes.Nome, Pedidos.PedidoID, Pedidos.Status
+FROM Pedidos
+JOIN Clientes ON Pedidos.ClienteID = Clientes.ClienteID
+LEFT JOIN Pagamentos ON Pedidos.PedidoID = Pagamentos.PedidoID
+WHERE Pagamentos.PagamentoID IS NULL;
+
+-- 7. Total de pagamentos realizados por forma de pagamento:
+SELECT FormaPagamento, SUM(ValorPago) AS TotalPago
+FROM Pagamentos
+GROUP BY FormaPagamento;

@@ -1,37 +1,105 @@
-# Projeto-E-commerce
-Descrição do Desafio
-Replique a modelagem do projeto lógico de banco de dados para o cenário de e-commerce. Fique atento as definições de chave primária e estrangeira, assim como as constraints presentes no cenário modelado. Perceba que dentro desta modelagem haverá relacionamentos presentes no modelo EER. Sendo assim, consulte como proceder para estes casos. Além disso, aplique o mapeamento de modelos aos refinamentos propostos no módulo de modelagem conceitual.
+# 🛒 Projeto E-commerce
 
-Assim como demonstrado durante o desafio, realize a criação do Script SQL para criação do esquema do banco de dados. Posteriormente, realize a persistência de dados para realização de testes. Especifique ainda queries mais complexas dos que apresentadas durante a explicação do desafio. Sendo assim, crie queries SQL com as cláusulas abaixo:
+### Descrição Geral
 
-Recuperações simples com SELECT Statement
-Filtros com WHERE Statement
-Crie expressões para gerar atributos derivados
-Defina ordenações dos dados com ORDER BY
-Condições de filtros aos grupos – HAVING Statement
-Crie junções entre tabelas para fornecer uma perspectiva mais complexa dos dados
-Diretrizes
-Não há um mínimo de queries a serem realizadas;
-Os tópicos supracitados devem estar presentes nas queries;
-Elabore perguntas que podem ser respondidas pelas consultas;
-As cláusulas podem estar presentes em mais de uma query;
-O projeto deverá ser adicionado a um repositório do Github para futura avaliação do desafio de projeto. Adicione ao Readme a descrição do projeto lógico para fornecer o contexto sobre seu esquema lógico apresentado.
+Este repositório apresenta a modelagem lógica e a implementação de um banco de dados para um sistema de E-commerce, aplicando conceitos do modelo EER (Extended Entity-Relationship). O objetivo é simular um ambiente real de comércio eletrônico, com entidades como clientes, pedidos, produtos, fornecedores, entregas e pagamentos, considerando suas relações e restrições.
 
-Objetivo:
-[Relembrando] Aplique o mapeamento para o  cenário:
+### Principais Requisitos e Regras de Negócio:
 
-“Refine o modelo apresentado acrescentando os seguintes pontos”
+* Um cliente pode ser Pessoa Física (PF) ou Pessoa Jurídica (PJ), mas não ambas.
+* Cada pedido pode ter uma ou mais formas de pagamento.
+* As entregas possuem código de rastreio e status.
+* Vendedores podem também ser fornecedores, sendo essa relação representada por uma tabela associativa.
 
-Cliente PJ e PF – Uma conta pode ser PJ ou PF, mas não pode ter as duas informações;
-Pagamento – Pode ter cadastrado mais de uma forma de pagamento;
-Entrega – Possui status e código de rastreio;
-Algumas das perguntas que podes fazer para embasar as queries SQL:
+### 🔧 Estrutura do Banco de Dados
 
-Quantos pedidos foram feitos por cada cliente?
-Algum vendedor também é fornecedor?
-Relação de produtos fornecedores e estoques;
-Relação de nomes dos fornecedores e nomes dos produtos;
+As tabelas criadas neste projeto incluem:
 
-# Logica de programação do desafio
+* **Clientes**: Armazena dados de clientes PF e PJ.
+* **Pedidos**: Contém as informações dos pedidos realizados.
+* **Produtos**: Catálogo de produtos disponíveis.
+* **Fornecedores**: Empresas fornecedoras dos produtos.
+* **Pagamentos**: Registro de formas de pagamento por pedido.
+* **Entregas**: Status e rastreamento dos pedidos.
+* **Vendedores**: Pessoas que atuam como vendedores.
+* **Fornecedor\_Vendedor**: Relação entre vendedores e fornecedores.
 
+### 📜 Explicação do Código SQL
 
+#### Criação de Tabelas
+
+* `CREATE TABLE Clientes`: define a estrutura básica dos clientes, com controle de CPF/CNPJ e tipo de pessoa.
+* `CREATE TABLE Pedidos`: relaciona cada pedido ao cliente, com data, status e valor total.
+* `CREATE TABLE Produtos`: define os produtos, com preço, estoque e fornecedor.
+* `CREATE TABLE Fornecedores`: armazena os dados das empresas fornecedoras.
+* `CREATE TABLE Pagamentos`: registra uma ou mais formas de pagamento de cada pedido.
+* `CREATE TABLE Entregas`: guarda o status e o código de rastreio da entrega.
+* `CREATE TABLE Vendedores`: dados de vendedores, podendo se relacionar com fornecedores.
+* `CREATE TABLE Fornecedor_Vendedor`: tabela associativa entre vendedores e fornecedores.
+
+#### Inserção de Dados
+
+* Comandos `INSERT INTO` populam as tabelas com dados fictícios para simulação e testes.
+
+#### Queries Avançadas
+
+1. **Pedidos por cliente**:
+
+```sql
+SELECT ClienteID, COUNT(PedidoID) AS QuantidadePedidos FROM Pedidos GROUP BY ClienteID;
+```
+
+2. **Vendedor também é fornecedor**:
+
+```sql
+SELECT Vendedores.Nome, Fornecedores.Nome FROM Vendedores JOIN Fornecedor_Vendedor ON ...
+```
+
+3. **Produtos, fornecedores e estoque**:
+
+```sql
+SELECT Produtos.Nome, Fornecedores.Nome, Produtos.Estoque FROM Produtos JOIN Fornecedores ON ...
+```
+
+4. **Relação fornecedor-produto**:
+
+```sql
+SELECT Fornecedores.Nome, Produtos.Nome FROM Produtos JOIN Fornecedores ON ...
+```
+
+5. **Produtos com estoque < 10**:
+
+```sql
+SELECT Nome, Preço, Estoque FROM Produtos WHERE Estoque < 10 ORDER BY Preço ASC;
+```
+
+6. **Pedidos sem pagamento**:
+
+```sql
+SELECT Clientes.Nome, Pedidos.PedidoID FROM Pedidos JOIN Clientes ON ... LEFT JOIN Pagamentos ON ... WHERE Pagamentos.PagamentoID IS NULL;
+```
+
+7. **Total por forma de pagamento**:
+
+```sql
+SELECT FormaPagamento, SUM(ValorPago) FROM Pagamentos GROUP BY FormaPagamento;
+```
+
+### 🎯 Objetivo Didático
+
+O projeto foi desenvolvido como parte de um desafio prático para consolidar conhecimentos em modelagem de dados, criação de schemas SQL e escrita de consultas complexas utilizando `JOIN`, `WHERE`, `GROUP BY`, `HAVING`, `ORDER BY`, e expressões derivadas.
+
+### 🧠 Conhecimentos Aplicados
+
+* Modelagem de dados EER
+* SQL DDL (Data Definition Language)
+* SQL DML (Data Manipulation Language)
+* Consultas SQL intermediárias e avançadas
+
+---
+
+> Desenvolvido como parte do desafio de projeto da [DIO - Digital Innovation One](https://www.dio.me/)
+
+---
+
+🐍 Powered by SQL + Lógica de Modelagem
